@@ -4,7 +4,7 @@ import re
 ### RESTRICTION DIGEST FUNCTION
 
 # Inputs
-seq = 'GAATTCCAAGTTCTTGTGCGCTTAAGACACAAATCCAATAAAAACTATTGTGCACACAGAATTCGCGACTTCGCGGTCTCGCTTGTTCTT' # fasta_dict[seq]
+seq = 'AAAAAAA'#'GAATTCCAAGTTCTTGTGCGCTTAAGACACAAATCCAATAAAAACTATTGTGCACACAGAATTCGCGACTTCGCGGTCTCGCTTGTTCTT' # fasta_dict[seq]
 motif = 'R^AATTY' # enz_dict[enzyme]
 
 # Dictionary of abbreviations for all bases
@@ -16,7 +16,8 @@ bases_dict = {
     'N' : '[ACGT]',
     '^' : '^' # Cut site added here to be able to convert first and split afterwards
 }
-       
+
+
 # Function to do restriction digest
 def digest(seq):
     # for line in seq:
@@ -37,12 +38,16 @@ def digest(seq):
     pattern_left, pattern_right = pattern.split("^")        
 
     ### Find all matches in forward strand
-    marked_seq_fw = ""
-    for match in re.finditer(rf'({pattern_left})({pattern_right})', seq):
-        match_seq_fw = match.group(0)
-        cut_left_fw = match.group(1) # Sequence before cut site
-        cut_right_fw = match.group(2) # Sequence after cut site
-        match_seq_fw_marked = (cut_left_fw + "^" + cut_right_fw) # To insert cut site symbol
+    if re.search(rf'({pattern_left})({pattern_right})', seq): # Check if ONE match exists
+        marked_seq_fw = ""
+        for match in re.finditer(rf'({pattern_left})({pattern_right})', seq): # Check ALL matches
+            match_seq_fw = match.group(0)
+            cut_left_fw = match.group(1) # Sequence before cut site
+            cut_right_fw = match.group(2) # Sequence after cut site
+            match_seq_fw_marked = (cut_left_fw + "^" + cut_right_fw) # To insert cut site symbol
+    else:
+        print(f'No matches found on the forward strand')
+        exit(2)        
     
     ### Consider reverse strand
     comp_seq = seq.replace("A", "t").replace("C", "g").replace("G", "c").replace("T", "a")
@@ -50,12 +55,16 @@ def digest(seq):
     print(rv_comp_seq)
 
     ### Find all matches in reverse strand
-    marked_seq_rv = ""
-    for match in re.finditer(rf'({pattern_left})({pattern_right})', rv_comp_seq):
-        match_seq_rv = match.group(0)
-        cut_left_rv = match.group(1) # Sequence before cut site
-        cut_right_rv = match.group(2) # Sequence after cut site
-        match_seq_rv_marked = (cut_left_rv + "^" + cut_right_rv) # To insert cut site symbol
+    if re.search(rf'({pattern_left})({pattern_right})', rv_comp_seq): # Check if ONE match exists
+        marked_seq_rv = ""
+        for match in re.finditer(rf'({pattern_left})({pattern_right})', rv_comp_seq): # Check ALL matches
+            match_seq_rv = match.group(0)
+            cut_left_rv = match.group(1) # Sequence before cut site
+            cut_right_rv = match.group(2) # Sequence after cut site
+            match_seq_rv_marked = (cut_left_rv + "^" + cut_right_rv) # To insert cut site symbol
+    else:
+        print(f'No matches found on the reverse strand')
+        exit(3)        
 
     ### Replace the uncut motif with the marked version
     marked_seq_fw = seq.replace(match_seq_fw, match_seq_fw_marked)
@@ -70,6 +79,18 @@ def digest(seq):
     #print(f'In the reverse strand the fragments are {fragments_rv}')
     fragments = fragments_fw + fragments_rv
     return fragments
+
+
+# filepath = "../PFB_problemsets/python7/Python_07_ApoI.fasta"
+
+# with open(filepath, "r") as seq:
+#     for line in seq:
+#         line = line.rstrip()
+#         if line.startswith('>'):
+#             continue
+#         else:
+#             seq = "".join(line)
+#             digest(seq)
 
 digest = digest(seq)
 print(digest)
