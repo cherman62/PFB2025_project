@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import re
 
-#######################################################################################################
-### RESTRICTION DIGEST FUNCTION #######################################################################
-#######################################################################################################
+##################################################################################################################
+### RESTRICTION DIGEST FUNCTION ##################################################################################
+##################################################################################################################
 
 # Inputs
 fasta_dict = {
@@ -24,7 +24,8 @@ bases_dict = {
     '^' : '^' # Cut site added here to be able to convert first and split afterwards
 }
 
-### DEFINITION OF FUNCTIONS TO BE USED ################################################################
+### DEFINITION OF FUNCTIONS TO BE USED ###########################################################################
+
 ### Function to do digest 
 def digest(fasta_dict, motifs):
     
@@ -40,9 +41,9 @@ def digest(fasta_dict, motifs):
             for base in motif:
                 if base in bases_dict:
                     pattern += bases_dict[base] # Replace degenerate bases with regex equivalent
-                if base not in bases_dict:
-                    print(f'Error: Check spelling of motif')
-                    exit(1)       
+                # if base not in bases_dict:
+                #     print(f'Error: Check spelling of motif')
+                #     exit(1)       
         
             ### Split regex pattern into two at cut site symbol for matching
             pattern_left, pattern_right = pattern.split("^")        
@@ -69,7 +70,7 @@ def digest(fasta_dict, motifs):
 
     return fragments_dict
 
-### Function to reverse complement
+### Function to reverse complement values of dictionary if they are a string
 def rev_comp(fasta_dict):
     rev_fasta_dict = {}
 
@@ -85,18 +86,47 @@ def rev_comp(fasta_dict):
         rev_fasta_dict[seq_id] = seq
     return rev_fasta_dict
 
+# Function to reverse complement values of dictionary if they are a list
+def rev_comp_list(fasta_dict):
+    rev_fasta_dict = {}
 
-### BEGINNING OF ACTUAL SCRIPT USING THESE FUNCTIONS ##################################################
-### Do digest
+    for seq_id, seq_list in fasta_dict.items():
+        rev_list = []
+        for seq in seq_list:
+            seq = seq.upper()
+            seq = seq.replace("A", "t").replace("C", "g").replace("G", "c").replace("T", "a")
+            rev_seq = seq.upper()[::-1]
+            rev_list.append(rev_seq)
+        rev_fasta_dict[seq_id] = rev_list
+
+    return rev_fasta_dict
+
+
+### BEGINNING OF ACTUAL SCRIPT USING THESE FUNCTIONS #############################################################
+
+### Do digest on both strands
 digest_dict = digest(fasta_dict, motifs) # To digest forward strand
-#print(f'This is the dictionary of fragments for the forward strand {digest_dict}')
-rev_fasta_dict = rev_comp(fasta_dict) # To make reverse complement
-rev_digest_dict = digest(rev_fasta_dict, motifs) # To digest reverse strand
-#print(f'This is the dictionary of fragments for the reverse strand {rev_digest_dict}')
+#print(f'This is the dictionary of fragments for the FORWARD strand {digest_dict}')
+# rev_fasta_dict = rev_comp(fasta_dict) # To make reverse complement
+# rev_digest_dict = digest(rev_fasta_dict, motifs) # To digest reverse strand
+rev_digest_dict = digest(rev_comp(fasta_dict), motifs)
+#print(f'This is the dictionary of fragments for the REVERSE strand {rev_digest_dict}')
 
-### Combine dictionaries together
-for key in digest_dict:
-    if key in rev_digest_dict:
-        digest_dict[key] += rev_digest_dict[key]
-print(digest_dict)        
+# Now reverse complement the digested reverse strand to be back to be able to check if fragments are unique
+rev_digest_dict_reversed = rev_comp_list(rev_digest_dict)
+#print(f'This is the REVERSE complement of the REVERSE complement: {rev_digest_dict_reversed}')
+
+### Combine dictionaries together and check if the items of the list are unique
+for key in rev_digest_dict_reversed: 
+    for seq in rev_digest_dict_reversed[key]: 
+        if seq not in digest_dict[key]:
+            digest_dict[key].append(seq)
+            
+
+print(f'This is the combined fragment list per key: {digest_dict}')
+ 
+        
+
+#print(digest_dict)
+#print(digest_bothstrands_dict)
 
