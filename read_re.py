@@ -17,8 +17,6 @@ re_names = []
 for key,val in re_dict.items():
     re_names.append(key)
 
-# print(re_names)
-
 input_re = input("Please enter your restriction enzyme of choice: ")
 matches = [res_enz for res_enz in re_names if Levenshtein.distance(res_enz, input_re) < 2]
 
