@@ -21,7 +21,7 @@ def read_fasta(fasta_sequence):
 
     fasta_dict = dict(zip(seq_ID,seq))
 
-    return fasta_dict, len(fasta_dict)
+    return fasta_dict
 
 example_fasta_file = '''
 >seq1
