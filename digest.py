@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 import re
 
-### RESTRICTION DIGEST FUNCTION
+#######################################################################################################
+### RESTRICTION DIGEST FUNCTION #######################################################################
+#######################################################################################################
 
 # Inputs
 fasta_dict = {
     'seq1':'GAATTCCAAGTTCTTGTGCGCTTAAGACACAAATCCAATAAAAACTATTGTGCACACAGAATTCGCGACTTCGCGGTCTCGCTTGTTCTT',
     'seq2':'GAATTCCAAGTTCGATCC',
-    'seq3':'AAAAAAA'
- }
-motifs = ['R^AATTY', 'C^GATCC'] #list of restriction motifs, in this case for ApoI and BamHI
+    'seq3':'AAAAAAA',
+    'seq4':'ATGCGCCCGCATTT'
+ } # dictionary of seq_id:sequence
+motifs = ['R^AATTY', 'C^GATCC', 'GC^GGCCGC'] # list of restriction motifs, in this case for ApoI, BamHI and NotI
 
 # Dictionary of abbreviations for all bases
 bases_dict = {
@@ -21,8 +24,8 @@ bases_dict = {
     '^' : '^' # Cut site added here to be able to convert first and split afterwards
 }
 
-
-# # Function to do restriction digest
+### DEFINITION OF FUNCTIONS TO BE USED ################################################################
+### Function to do digest 
 def digest(fasta_dict, motifs):
     
     fragments_dict = {} # Empty dictionary for final output
@@ -57,15 +60,16 @@ def digest(fasta_dict, motifs):
                 #print(f'No matches found for {motif} on the forward strand of {seq_id}')
                 continue      
             
+            ### Replace seq with marked parts before repeating the loop
             seq = seq.replace(match_seq, match_seq_marked)
 
         ### Split the sequence into fragments at the cut site
         fragments = seq.split("^")
         fragments_dict[seq_id] = fragments 
+
     return fragments_dict
 
-
-# Function to reverse complement
+### Function to reverse complement
 def rev_comp(fasta_dict):
     rev_fasta_dict = {}
 
@@ -81,16 +85,18 @@ def rev_comp(fasta_dict):
         rev_fasta_dict[seq_id] = seq
     return rev_fasta_dict
 
-# Do digest
-digest_result = digest(fasta_dict, motifs) # To digest forward strand
-#print(f'This is the dictionary of fragments for the forward strand {digest_result}')
-rev_fasta_dict = rev_comp(fasta_dict) # To make reverse complement
-rev_digest_result = digest(rev_fasta_dict, motifs) # To digest reverse strand
-#print(f'This is the dictionary of fragments for the reverse strand {rev_digest_result}')
 
-# Combine dictionaries together
-fragments_dict_fw_rv = {
-    'Forward strand' : digest_result,
-    'Reverse strand' : rev_digest_result
-} 
-print(fragments_dict_fw_rv)
+### BEGINNING OF ACTUAL SCRIPT USING THESE FUNCTIONS ##################################################
+### Do digest
+digest_dict = digest(fasta_dict, motifs) # To digest forward strand
+#print(f'This is the dictionary of fragments for the forward strand {digest_dict}')
+rev_fasta_dict = rev_comp(fasta_dict) # To make reverse complement
+rev_digest_dict = digest(rev_fasta_dict, motifs) # To digest reverse strand
+#print(f'This is the dictionary of fragments for the reverse strand {rev_digest_dict}')
+
+### Combine dictionaries together
+for key in digest_dict:
+    if key in rev_digest_dict:
+        digest_dict[key] += rev_digest_dict[key]
+print(digest_dict)        
+
