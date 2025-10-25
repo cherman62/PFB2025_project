@@ -4,7 +4,7 @@ import re
 ### RESTRICTION DIGEST FUNCTION
 
 # Inputs
-seq = 'AAAAAAA'#'GAATTCCAAGTTCTTGTGCGCTTAAGACACAAATCCAATAAAAACTATTGTGCACACAGAATTCGCGACTTCGCGGTCTCGCTTGTTCTT' # fasta_dict[seq]
+seq = 'GAATTCCAAGTTCTTGTGCGCTTAAGACACAAATCCAATAAAAACTATTGTGCACACAGAATTCGCGACTTCGCGGTCTCGCTTGTTCTT' # fasta_dict[seq]
 motif = 'R^AATTY' # enz_dict[enzyme]
 
 # Dictionary of abbreviations for all bases
@@ -19,7 +19,7 @@ bases_dict = {
 
 
 # Function to do restriction digest
-def digest(seq):
+def digest(seq, motif):
     # for line in seq:
     #     line = line.rstrip () # to remove the empty character
 
@@ -81,16 +81,5 @@ def digest(seq):
     return fragments
 
 
-# filepath = "../PFB_problemsets/python7/Python_07_ApoI.fasta"
-
-# with open(filepath, "r") as seq:
-#     for line in seq:
-#         line = line.rstrip()
-#         if line.startswith('>'):
-#             continue
-#         else:
-#             seq = "".join(line)
-#             digest(seq)
-
-digest = digest(seq)
+digest = digest(seq, motif)
 print(digest)
