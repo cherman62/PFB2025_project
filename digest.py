@@ -4,7 +4,7 @@ import re
 ### RESTRICTION DIGEST FUNCTION
 
 # Inputs
-seq = 'GAATTCCAAGTTCTTGTGCGCACACAAATCCAATAAAAACTATTGTGCACACAGAATTCGCGACTTCGCGGTCTCGCTTGTTCTT' # fasta_dict[seq]
+seq = 'GAATTCCAAGTTCTTGTGCGCTTAAGACACAAATCCAATAAAAACTATTGTGCACACAGAATTCGCGACTTCGCGGTCTCGCTTGTTCTT' # fasta_dict[seq]
 motif = 'R^AATTY' # enz_dict[enzyme]
 
 # Dictionary of abbreviations for all bases
@@ -36,20 +36,39 @@ def digest(seq):
     ### Split regex pattern into two at cut site symbol for matching
     pattern_left, pattern_right = pattern.split("^")        
 
-    ### Find all matches
-    marked_seq = ""
+    ### Find all matches in forward strand
+    marked_seq_fw = ""
     for match in re.finditer(rf'({pattern_left})({pattern_right})', seq):
-        match_seq = match.group(0)
-        cut_left = match.group(1) # Sequence before cut site
-        cut_right = match.group(2) # Sequence after cut site
-        match_seq_marked = (cut_left + "^" + cut_right) # To insert cut site symbol
+        match_seq_fw = match.group(0)
+        cut_left_fw = match.group(1) # Sequence before cut site
+        cut_right_fw = match.group(2) # Sequence after cut site
+        match_seq_fw_marked = (cut_left_fw + "^" + cut_right_fw) # To insert cut site symbol
     
+    ### Consider reverse strand
+    comp_seq = seq.replace("A", "t").replace("C", "g").replace("G", "c").replace("T", "a")
+    rv_comp_seq = comp_seq.upper()[::-1]
+    print(rv_comp_seq)
+
+    ### Find all matches in reverse strand
+    marked_seq_rv = ""
+    for match in re.finditer(rf'({pattern_left})({pattern_right})', rv_comp_seq):
+        match_seq_rv = match.group(0)
+        cut_left_rv = match.group(1) # Sequence before cut site
+        cut_right_rv = match.group(2) # Sequence after cut site
+        match_seq_rv_marked = (cut_left_rv + "^" + cut_right_rv) # To insert cut site symbol
+
     ### Replace the uncut motif with the marked version
-    marked_seq = seq.replace(match_seq, match_seq_marked)
-    #print(marked_seq)
+    marked_seq_fw = seq.replace(match_seq_fw, match_seq_fw_marked)
+    marked_seq_rv = rv_comp_seq.replace(match_seq_rv, match_seq_rv_marked)
+    #print(marked_seq_fw)
+    #print(marked_seq_rv)
 
     ### Split the sequence into fragments at the cut site
-    fragments = marked_seq.split("^")
+    fragments_fw = marked_seq_fw.split("^")
+    fragments_rv = marked_seq_rv.split("^")
+    #print(f'In the forward stand the fragments are {fragments_fw}')
+    #print(f'In the reverse strand the fragments are {fragments_rv}')
+    fragments = fragments_fw + fragments_rv
     return fragments
 
 digest = digest(seq)
