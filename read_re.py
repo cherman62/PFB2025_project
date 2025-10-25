@@ -25,22 +25,24 @@ def re_match(restriction_enzymes):
         matches_list.append(matches)
 
     results = []
+    err_messages = []
     for count,res_enz_input in enumerate(restriction_enzymes):
         if not matches_list[count]:
             invalid_warning = 'Please enter a valid restriction enzyme. Check out a list of restriction enzymes here: https://rebase.neb.com/rebase/link_bionetc.'
-            return invalid_warning
+            err_messages.append(invalid_warning)
         elif res_enz_input in matches_list[count]:
             results.append(re_dict[res_enz_input])
+            err_messages.append(re_dict[res_enz_input])
         elif res_enz_input not in matches_list[count]:
             separator = ", "
             my_string = separator.join(matches_list[count])
             suggestion_warning = f'Do you mean {my_string}?'
-            return suggestion_warning
+            err_messages.append(suggestion_warning)
     
-    return results
+    return results, err_messages
 
-restriction_enzymes = ['ZraI','BamHI','XmaI']
-print(re_match(restriction_enzymes))
+# restriction_enzymes = ['BamHI','EcoRAKDJ','Sma']
+# print(re_match(restriction_enzymes))
 
 # def re_match(restriction_enzyme):
 #     with open('re_w_cutsites.txt','r') as REtable:
