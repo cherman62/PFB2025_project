@@ -4,8 +4,12 @@ import re
 ### RESTRICTION DIGEST FUNCTION
 
 # Inputs
-seq = 'GAATTCCAAGTTCTTGTGCGCTTAAGACACAAATCCAATAAAAACTATTGTGCACACAGAATTCGCGACTTCGCGGTCTCGCTTGTTCTT' # fasta_dict[seq]
-motif = 'R^AATTY' # enz_dict[enzyme]
+fasta_dict = {
+    'seq1':'GAATTCCAAGTTCTTGTGCGCTTAAGACACAAATCCAATAAAAACTATTGTGCACACAGAATTCGCGACTTCGCGGTCTCGCTTGTTCTT',
+    'seq2':'GAATTCCAAGTTCGATCC',
+    'seq3':'AAAAAAA'
+ }
+motifs = ['R^AATTY', 'C^GATCC'] #list of restriction motifs, in this case for ApoI and BamHI
 
 # Dictionary of abbreviations for all bases
 bases_dict = {
@@ -18,68 +22,75 @@ bases_dict = {
 }
 
 
-# Function to do restriction digest
-def digest(seq, motif):
-    # for line in seq:
-    #     line = line.rstrip () # to remove the empty character
-
-    seq = seq.upper()
-
-    ### Convert motif to a regular expression pattern
-    pattern = ''
-    for base in motif:
-        if base in bases_dict:
-            pattern += bases_dict[base] # Replace degenerate bases with regex equivalent
-        if base not in bases_dict:
-            print(f'Error: Check spelling of motif')
-            exit(1)       
+# # Function to do restriction digest
+def digest(fasta_dict, motifs):
     
-    ### Split regex pattern into two at cut site symbol for matching
-    pattern_left, pattern_right = pattern.split("^")        
+    fragments_dict = {} # Empty dictionary for final output
 
-    ### Find all matches in forward strand
-    if re.search(rf'({pattern_left})({pattern_right})', seq): # Check if ONE match exists
-        marked_seq_fw = ""
-        for match in re.finditer(rf'({pattern_left})({pattern_right})', seq): # Check ALL matches
-            match_seq_fw = match.group(0)
-            cut_left_fw = match.group(1) # Sequence before cut site
-            cut_right_fw = match.group(2) # Sequence after cut site
-            match_seq_fw_marked = (cut_left_fw + "^" + cut_right_fw) # To insert cut site symbol
-    else:
-        print(f'No matches found on the forward strand')
-        exit(2)        
-    
-    ### Consider reverse strand
-    comp_seq = seq.replace("A", "t").replace("C", "g").replace("G", "c").replace("T", "a")
-    rv_comp_seq = comp_seq.upper()[::-1]
-    print(rv_comp_seq)
+    ### Loop over each seq in dictinory
+    for seq_id, seq in fasta_dict.items():
+        seq = seq.upper()
+        
+        ### Convert motif to a regular expression pattern
+        for motif in motifs:
+            pattern = ''
+            for base in motif:
+                if base in bases_dict:
+                    pattern += bases_dict[base] # Replace degenerate bases with regex equivalent
+                if base not in bases_dict:
+                    print(f'Error: Check spelling of motif')
+                    exit(1)       
+        
+            ### Split regex pattern into two at cut site symbol for matching
+            pattern_left, pattern_right = pattern.split("^")        
 
-    ### Find all matches in reverse strand
-    if re.search(rf'({pattern_left})({pattern_right})', rv_comp_seq): # Check if ONE match exists
-        marked_seq_rv = ""
-        for match in re.finditer(rf'({pattern_left})({pattern_right})', rv_comp_seq): # Check ALL matches
-            match_seq_rv = match.group(0)
-            cut_left_rv = match.group(1) # Sequence before cut site
-            cut_right_rv = match.group(2) # Sequence after cut site
-            match_seq_rv_marked = (cut_left_rv + "^" + cut_right_rv) # To insert cut site symbol
-    else:
-        print(f'No matches found on the reverse strand')
-        exit(3)        
+            ### Find all matches in forward strand
+            if re.search(rf'({pattern_left})({pattern_right})', seq): # Check if ONE match exists
+                #print(f'Match found for {motif} on the forward strand of {seq_id}')
+                marked_seq = ""
+                for match in re.finditer(rf'({pattern_left})({pattern_right})', seq): # Check ALL matches
+                    match_seq  = match.group(0)
+                    cut_left = match.group(1) # Sequence before cut site
+                    cut_right = match.group(2) # Sequence after cut site
+                    match_seq_marked = (cut_left + "^" + cut_right) # To insert cut site symbol
+            else:
+                #print(f'No matches found for {motif} on the forward strand of {seq_id}')
+                continue      
+            
+            seq = seq.replace(match_seq, match_seq_marked)
 
-    ### Replace the uncut motif with the marked version
-    marked_seq_fw = seq.replace(match_seq_fw, match_seq_fw_marked)
-    marked_seq_rv = rv_comp_seq.replace(match_seq_rv, match_seq_rv_marked)
-    #print(marked_seq_fw)
-    #print(marked_seq_rv)
-
-    ### Split the sequence into fragments at the cut site
-    fragments_fw = marked_seq_fw.split("^")
-    fragments_rv = marked_seq_rv.split("^")
-    #print(f'In the forward stand the fragments are {fragments_fw}')
-    #print(f'In the reverse strand the fragments are {fragments_rv}')
-    fragments = fragments_fw + fragments_rv
-    return fragments
+        ### Split the sequence into fragments at the cut site
+        fragments = seq.split("^")
+        fragments_dict[seq_id] = fragments 
+    return fragments_dict
 
 
-digest = digest(seq, motif)
-print(digest)
+# Function to reverse complement
+def rev_comp(fasta_dict):
+    rev_fasta_dict = {}
+
+    ### Loop over each seq in dictinory
+    for seq_id, seq in fasta_dict.items():
+        seq = seq.upper()
+
+        ### Consider reverse strand
+        seq = seq.replace("A", "t").replace("C", "g").replace("G", "c").replace("T", "a")
+        seq = seq.upper()[::-1]
+        
+        ### Add this to a dictionary
+        rev_fasta_dict[seq_id] = seq
+    return rev_fasta_dict
+
+# Do digest
+digest_result = digest(fasta_dict, motifs) # To digest forward strand
+#print(f'This is the dictionary of fragments for the forward strand {digest_result}')
+rev_fasta_dict = rev_comp(fasta_dict) # To make reverse complement
+rev_digest_result = digest(rev_fasta_dict, motifs) # To digest reverse strand
+#print(f'This is the dictionary of fragments for the reverse strand {rev_digest_result}')
+
+# Combine dictionaries together
+fragments_dict_fw_rv = {
+    'Forward strand' : digest_result,
+    'Reverse strand' : rev_digest_result
+} 
+print(fragments_dict_fw_rv)
