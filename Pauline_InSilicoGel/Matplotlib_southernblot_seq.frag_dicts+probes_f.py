@@ -165,7 +165,7 @@ for i, (probe_name, probe_seq) in enumerate(probes.items()):
 
      # Draw the color block
     block_width = 0.20
-    block_height = 5
+    block_height = 3
     ax.add_patch(plt.Rectangle((x_pos, legend_y), block_width, block_height, color=color, ec='white', lw=0.5))
 
     #calculating Tm for probes 
