@@ -1,12 +1,12 @@
 # In Silico Southern Blot Tool
 
 
-Repo
+**Repo**
 
 https://github.com/cherman62/PFB2025_project
 
 
-Participants
+**Participants**
 
 Sara Pini
 
@@ -17,12 +17,12 @@ Pauline DiGianivittorio
 Calvin Herman
 
 
-TA
+**TA**
 
 Eric Ross
 
 
-Summary
+**Summary**
 
 Southern blot is a technique used to detect target DNA. The in silico southern blot tool facilitates the user's southern blot experiment by visualizing probe binding to DNA sample cleaved by restriction enzyme(s) of choice. 
 
