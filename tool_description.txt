@@ -1,0 +1,5 @@
+Southern blot is a technique used to detect target DNA. The in silico southern blot tool facilitates the user's southern blot experiment by visualizing probe binding to DNA sample cleaved by restriction enzyme(s) of choice. 
+
+To start, please enter a FASTA and probe sequence(s), and up to two restriction enzymes. Restriction enzyme names are case-sensitive.
+
+The output is a virtual gel of digested DNA sample and displays color-coded bands indicating locations the probe(s) are expected to bind.
