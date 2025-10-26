@@ -4,6 +4,8 @@ from dash import Dash, html, dcc, Input, Output, State, ALL, no_update
 import re
 from read_fasta import read_fasta
 from read_re import re_match
+from digest import *
+from Matplotlib_southernblot_seq.frag_dicts+probes_f.py import *
 
 
 #Initialize the app
@@ -19,7 +21,11 @@ app.layout = html.Div([
                  style={"font-size": "30px", "textAlign": "center"})],
      style={"marginBottom": "20px"}),
      html.Div([                                                          # Header
-    html.Header("Some kind of description here.................", 
+    html.Label("Southern blot is a technique used to detect target DNA. The in silico southern blot tool facilitates the user's southern blot experiment by visualizing probe binding to DNA sample cleaved by restriction enzyme(s) of choice.", 
+                 style={"font-size": "20px"}),
+    html.Label("To start, please enter a FASTA and probe sequence(s), and up to two restriction enzymes. Restriction enzyme names are case-sensitive.", 
+                 style={"font-size": "20px"}),
+    html.Label("The output is a virtual gel of digested DNA sample and displays color-coded bands indicating locations the probe(s) are expected to bind.", 
                  style={"font-size": "20px"})],
      style={"marginBottom": "30px"}),
     html.Div([                                                          # Fasta input title  
@@ -64,7 +70,8 @@ app.layout = html.Div([
     
     html.Div(id="seq_output"),
     html.Div(id="enz_output"),
-    html.Div(id="probe_output")
+    html.Div(id="probe_output"),
+    html.Div(id="rest_output")
 ])
 
 
@@ -117,10 +124,11 @@ def check_enzyme_suggestions(n_clicks, enzyme_values):
 # CALLBACK: Capture user inputs and store in variables when submit button is clicked
 
 @app.callback(
-    Output('error_output', 'children'),  # Output for error messages
-    Output('seq_output', 'children'), #since this is the first output it will be fasta_values
-    Output('enz_output', 'children'), #this will be enzyme_values
-    Output('probe_output', 'children'),#this will be probe_values
+    # Output('error_output', 'children'),  # Output for error messages
+    # Output('seq_output', 'children'), #since this is the first output it will be fasta_values
+    # Output('enz_output', 'children'), #this will be enzyme_values
+    # Output('probe_output', 'children'),#this will be probe_values
+    Output('rest_output', 'children'), #this will be motifs
     Input('submit_button', 'n_clicks'), # triggers when Submit button is clicked
     State('fasta_input', 'value'),  # reads FASTA input
     State({'type': 'enzyme', 'index': ALL}, 'value'), # read values of all enzyme boxes
@@ -157,18 +165,20 @@ def capture_inputs(n_clicks, fasta_values, enzyme_values, probe_values):
     
     if len(re_match(enzyme_values)[0]) == len(enzyme_values):  #check all enzymes valid
         if not error_msg:  # proceed only if no errors so far
-            read_fasta(fasta_values)
-            read_fasta(probe_values)
-            re_match(enzyme_values)[0]
-            print(read_fasta(fasta_values), re_match(enzyme_values)[0], read_fasta(probe_values))
+            fasta_dict = read_fasta(fasta_values) #fasta dictionary
+            probes_dict = read_fasta(probe_values)
+            motifs = re_match(enzyme_values)[0] #enzyme patterns list
     error_list = []
     for msg in error_msg:
         error_list.append(html.Div(
         f"{msg}",
         style={"marginBottom": "8px", 'color': 'red'}
         ))
-    return (error_list, fasta_values, probe_values, enzyme_values) #Temporaryly return the inputs for testing
-        
+    
+    ##### Getting the digested DNA fragments ######## 
+    digested_dict = re_digest(fasta_dict, motifs)
+    #return re_digest(fasta_dict, motifs)
+    
 
 if __name__ == "__main__":
     app.run(debug=True)

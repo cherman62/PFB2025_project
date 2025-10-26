@@ -6,13 +6,13 @@ import re
 ##################################################################################################################
 
 # Inputs
-fasta_dict = {
-    'seq1':'GAATTCCAAGTTCTTGTGCGCTTAAGACACAAATCCAATAAAAACTATTGTGCACACAGAATTCGCGACTTCGCGGTCTCGCTTGTTCTT',
-    'seq2':'GAATTCCAAGTTCGATCC',
-    'seq3':'AAAAAAA',
-    'seq4':'ATGCGCCCGCATTT'
- } # dictionary of seq_id:sequence
-motifs = ['R^AATTY', 'C^GATCC', 'GC^GGCCGC'] # list of restriction motifs, in this case for ApoI, BamHI and NotI
+# fasta_dict = {
+#     'seq1':'GAATTCCAAGTTCTTGTGCGCTTAAGACACAAATCCAATAAAAACTATTGTGCACACAGAATTCGCGACTTCGCGGTCTCGCTTGTTCTT',
+#     'seq2':'GAATTCCAAGTTCGATCC',
+#     'seq3':'AAAAAAA',
+#     'seq4':'ATGCGCCCGCATTT'
+#  } # dictionary of seq_id:sequence
+# motifs = ['R^AATTY', 'C^GATCC', 'GC^GGCCGC'] # list of restriction motifs, in this case for ApoI, BamHI and NotI
 
 
 def re_digest(fasta_dict, motifs): 
@@ -116,7 +116,7 @@ def re_digest(fasta_dict, motifs):
     return(digest_dict)            
 
 
-digest_dict = re_digest(fasta_dict, motifs)
-print(f'This is the final dictionary of the digest: {digest_dict}')            
+# digest_dict = re_digest(fasta_dict, motifs)
+# print(f'This is the final dictionary of the digest: {digest_dict}')            
  
 
