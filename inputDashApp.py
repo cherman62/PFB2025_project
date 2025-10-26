@@ -26,22 +26,32 @@ app.layout = html.Div([
      html.Label("1) Paste one or more DNA sequences in FASTA format", htmlFor='fasta_input',
                 style={"font-size": "20px", "marginRight": "10px"})]),
     html.Div([                                                          # Fasta input box 
-     dcc.Textarea(id='fasta_input', rows=20, cols=90, required=True,
+     dcc.Textarea(id='fasta_input', rows=20, cols=90, value='', required=True,
                 placeholder=f'>sequence name\nACGTACGT...\n>sequence2 name\nACGTACGT...\n',)],
                 style={"marginBottom": "20px"}),
                 html.Div([                                              # Probe Fasta input title  
      html.Label("2) Paste one or more Probe sequences in FASTA format", htmlFor='probe_input',
                 style={"font-size": "20px", "marginRight": "10px"})]),
     html.Div([                                                          # Probe Fasta input box 
-     dcc.Textarea(id='probe_input', rows=10, cols=90, required=True,
+     dcc.Textarea(id='probe_input', rows=10, cols=90, value='', required=True,
                 placeholder=f'>probe name\nACGTACGT...\n>probe2 name\nACGTACGT...\n',)],
                 style={"marginBottom": "20px"}),
-    html.Div(                                                          # Restriction enzyme input title
-     html.Label("3) Select one or more Restriction enzymes", htmlFor='rest_enz_input',
-                style={"font-size": "20px", "marginRight": "10px"})),
+    html.Div([                                                          # Restriction enzyme input title
+     html.Label("3) Select one or more Restriction enzymes ", htmlFor='rest_enz_input',
+                style={"font-size": "20px"}),
+     html.Label("(Check out a list of restriction enzymes ", htmlFor='rest_enz_input',
+                style={"font-size": "15px"}),
+     html.A('Here', href='https://rebase.neb.com/rebase/link_bionetc', target='_blank',
+            style={"font-size": "15px", "color": "#007bff", "textDecoration": "none"}),
+    html.Label(")", style={"font-size": "15px"})           
+                ]),
+     html.Div(
+     html.Label("Multiple restriction digests are performed sequentially, following the order in which the restriction enzymes are added.", htmlFor='rest_enz_instructions1',
+                style={"font-size": "15px", "marginLeft": "22px"})),
     html.Div(id='rest_enz_input',children=[                             # Restriction enzyme input box
-         dcc.Input( id= {'type': 'enzyme', 'index': 0}, type='text', required= True,
-                    style={'width': '400px',"marginBottom": "10px", "display": "block"}),],
+         dcc.Input( id= {'type': 'enzyme', 'index': 0}, type='text', value='',
+                   placeholder='Enter one restriction enzyme name',
+                    style={'width': '400px',"marginBottom": "10px","marginTop": "5px", "display": "block"}),],
                     style={"display": "flex", "flexDirection": "column"}),
     html.Div([                                                          # Add enzyme button  
      html.Button('Add Restriction Enzymes', id='add_enzyme_button', n_clicks=0,
@@ -72,7 +82,7 @@ def display_additional_enzyme_inputs(n_clicks, children):
         return children     # do nothing if not triggered by the button
     if n_clicks < 2:        # limit to max 2 enzyme boxes for now
         new_id = {'type': 'enzyme', 'index': counter['n']}
-        new_box = dcc.Input(id= new_id, type='text',
+        new_box = dcc.Input(id= new_id, type='text', value='',
                    style={'width': '400px',"marginBottom": "10px", "display": "block"})
         counter['n'] += 1
         children.append(new_box)
@@ -85,28 +95,26 @@ def display_additional_enzyme_inputs(n_clicks, children):
     State({'type': 'enzyme', 'index': ALL}, 'value'),
 )
 def check_enzyme_suggestions(n_clicks, enzyme_values):
-    motif_list = []
     message = []
+    count = 0
     if n_clicks == 0:
         return no_update
     else:
-        for enz in enzyme_values:
-            if enz:
-                suggestion = re_match(enz)
-                motif_list.append(re_match(enz))
-                if '^' in suggestion:
-                    message.append(html.Div(
-                    f"{enz}: {suggestion}",
-                    style={"marginBottom": "8px", 'color': 'green'}
+        for msg in re_match(enzyme_values)[1]:
+            if '^' in msg:
+                message.append(html.Div(
+                f"{enzyme_values[count]}: {msg}",
+                style={"marginBottom": "8px", 'color': 'green'}
                 ))
-                else:
-                    message.append(html.Div(
-                    f"{enz}: {suggestion}",
-                    style={"marginBottom": "8px"}
+            else:
+                message.append(html.Div(
+                f"{enzyme_values[count]}: {msg}",
+                style={"marginBottom": "8px"}
                 ))
+            count += 1
         return message
 
-# CALLBACK: Capture user inputs and store in variables
+# CALLBACK: Capture user inputs and store in variables when submit button is clicked
 
 @app.callback(
     Output('error_output', 'children'),  # Output for error messages
@@ -122,30 +130,44 @@ def check_enzyme_suggestions(n_clicks, enzyme_values):
 def capture_inputs(n_clicks, fasta_values, enzyme_values, probe_values):
     if n_clicks == 0:
         return no_update, no_update, no_update, no_update  # Do nothing if not triggered by the button
-    if not fasta_values.startswith('>'): #check the FASTA has header
-        return ("Error: Invalid FASTA format for DNA sequence. Please ensure your input starts with '>'.", no_update, no_update, no_update)
+    
+    error_msg = []
+
+    if not fasta_values or not fasta_values.startswith('>'): #check the FASTA has header
+        error_msg.append("Error: Invalid FASTA format for DNA sequence. Please ensure your input starts with '>'.")
     for line in fasta_values.split('\n'): #Check only valid characters in FASTA sequence
         if '>' not in line:  # Skip header lines
             line = line.upper().strip()
             if not set(line).issubset(['A','C','G','T','N']):
-                return ("Error: Invalid characters in DNA FASTA sequence. Only A, C, G, T, N are allowed.", no_update, no_update, no_update)
-    if enzyme_values == [None]:  #check at least one enzyme entered. !!!!!NOT WORKING YET!!!!!
-        return ("Error: Please enter one restriction enzyme.", no_update, no_update, no_update)
-    for enz in enzyme_values:
-        if ' ' in enz:
-            return ("Error: Enzyme names cannot contain spaces.", no_update, no_update, no_update)
-    if not probe_values.startswith('>'):  #check at least one probe entered
-        return ("Error: Invalid FASTA format for Probe sequence. Please ensure your input starts with '>'.", no_update, no_update, no_update)
+                error_msg.append("Error: Invalid characters in DNA FASTA sequence. Only A, C, G, T, N are allowed.")
+    
+    if not probe_values or not probe_values.startswith('>'):  #check at least one probe entered
+        error_msg.append("Error: Invalid FASTA format for Probe sequence. Please ensure your input starts with '>'.")
     for line in probe_values.split('\n'): #Check only valid characters in FASTA sequence
-        if '>' not in line:  # Skip header lines
+        if not line.startswith('>'):  # Skip header lines
             line = line.upper().strip()
             if not set(line).issubset(['A','C','G','T','N','R','Y']):
-                return ("Error: Invalid characters in Probe FASTA sequence. Only A, C, G, T, N, R, Y are allowed.", no_update, no_update, no_update)
-    else:
-        read_fasta(fasta_values)
-        read_fasta(probe_values)
-        print(type(enzyme_values))
-        return (None, fasta_values, enzyme_values, probe_values) #Temporaryly return the inputs for testing
+                error_msg.append("Error: Invalid characters in Probe FASTA sequence. Only A, C, G, T, N, R, Y are allowed.")
+    
+    if not enzyme_values or all(e is None or e.strip() == "" for e in enzyme_values):  #check at least one enzyme entered. !!!!!NOT WORKING YET!!!!!
+        error_msg.append("Error: Please enter one restriction enzyme.")
+    for enz in enzyme_values:
+        if ' ' in enz:
+            error_msg.append("Error: Enzyme names cannot contain spaces.")
+    
+    if len(re_match(enzyme_values)[0]) == len(enzyme_values):  #check all enzymes valid
+        if not error_msg:  # proceed only if no errors so far
+            read_fasta(fasta_values)
+            read_fasta(probe_values)
+            re_match(enzyme_values)[0]
+            print(read_fasta(fasta_values), re_match(enzyme_values)[0], read_fasta(probe_values))
+    error_list = []
+    for msg in error_msg:
+        error_list.append(html.Div(
+        f"{msg}",
+        style={"marginBottom": "8px", 'color': 'red'}
+        ))
+    return (error_list, fasta_values, probe_values, enzyme_values) #Temporaryly return the inputs for testing
         
 
 if __name__ == "__main__":
