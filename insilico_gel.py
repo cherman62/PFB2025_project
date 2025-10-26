@@ -1,26 +1,51 @@
 #!/usr/bin/env python3
 
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('agg') #stop plot output to the screen
 import math
 
-#DATA
-fragment_sizes = {"Seq1": ["ATGCGT" * 500 , "GATTACA" * 300 , "TTAGGC" * 270 , "CCGTA" *100, "AT" *72],
-                  "Seq2": ["GCGT" * 300 , "TTGAC" * 312 , "ATGC" * 120 , "CG" * 75]}
+import numpy as np
+from io import BytesIO
+import base64
 
-ladder = {'100bp': 100, '200bp': 200, '500bp': 500,
-          '1000bp': 1000, '2000bp': 2000, '3000bp': 3000, '5000bp' : 5000}
+import os
 
-probes = {"Probe1" : "ATGCGT"*100,
-          "Probe2" : "GATTACA"*50 , 
-          "Probe3" : "TTGAC"*25 , 
-          "Probe4" : "ATGC"*200 , 
-          "Probe5" : "GCGT" *150}
+# #DATA
+# fragment_sizes = {"Seq1": ["ATGCGT" * 500 , "GATTACA" * 300 , "TTAGGC" * 270 , "CCGTA" *100, "AT" *72],
+#                   "Seq2": ["GCGT" * 300 , "TTGAC" * 312 , "ATGC" * 120 , "CG" * 75]}
 
-probe_colors = ["yellow" , "lime" , "magenta" , "cyan" , "orange", "teal" , "blue", "coral" , "darkgreen" , "tan", "sienna", "plum", "lavendar"]
+# ladder = {'100bp': 100, '200bp': 200, '500bp': 500,
+#           '1000bp': 1000, '2000bp': 2000, '3000bp': 3000, '5000bp' : 5000}
+
+# probes = {"Probe1" : "ATGCGT"*100,
+#           "Probe2" : "GATTACA"*50 , 
+#           "Probe3" : "TTGAC"*25 , 
+#           "Probe4" : "ATGC"*200 , 
+#           "Probe5" : "GCGT" *150}
+
+# probe_colors = ["yellow" , "lime" , "magenta" , "cyan" , "orange", "teal" , "blue", "coral" , "darkgreen" , "tan", "sienna", "plum", "lavendar"]
 
 
 
 ############################################################# FUNCTIONS #####################################################################
+#Coverting plotlib figure into URI
+def fig_to_uri(in_fig, close_all=True, **save_args):
+    # type: (plt.Figure) -> str
+    """
+    Save a figure as a URI
+    :param in_fig:
+    :return:
+    """
+    out_img = BytesIO()
+    in_fig.savefig(out_img, format='png', **save_args)
+    if close_all:
+        in_fig.clf()
+        plt.close('all')
+    out_img.seek(0)  # rewind file
+    encoded = base64.b64encode(out_img.read()).decode("ascii").replace("\n", "")
+    return "data:image/png;base64,{}".format(encoded)
+
 
 #Simulate migration distance (smaller fragments migrate farther)- plotted on a logarithmic scale, as that is how typical DNA agarose gels run 
 def migration_distance(size):
@@ -49,37 +74,48 @@ def highlight_probe_html(seq, probe_dict, colors):
     return highlighted_seq
 
 #Setting up and generating HTML file 
-def generate_html(filename, fragment_sizes, probes, probe_colors): 
+
+def generate_html(fragment_sizes, probes, probe_colors): 
     matches_found = False
-    with open("probe_matches_e.html", "w") as html_file:
-        html_file.write("<html><head><title>Probe Matches</title></head><body style='background-color:white; font-family:monospace;'>\n")
-        html_file.write(f"<h2>Probe Matches with Tm Values</h2>\n")
+    html_file = []
+    #with open(filename, "w") as html_file:
+    html_file.append("<html><head><title>Probe Matches</title></head><body style='background-color:white; font-family:monospace;'>\n")
+    html_file.append(f"<h2>Probe Matches with Tm Values</h2>\n")
 
         # ----------- Add probe legend with Tm values -----------
-        html_file.write("<h3>Probe Legend</h3>\n<ul>\n")
-        for i, (probe_name, probe_seq) in enumerate(probes.items()):
-            color = probe_colors[i % len(probe_colors)]
-            tm = calculate_tm(probe_seq)
-            html_file.write(
-                f"<li><b>{probe_name}</b>: "
-                f"<span style='background-color:{color};'>{probe_seq}</span> "
-                f"({len(probe_seq)} bp, Tm = {tm}C)</li>\n")
-        html_file.write("</ul><hr>\n")
+    html_file.append("<h3>Probe Legend</h3>\n<ul>\n")
+    for i, (probe_name, probe_seq) in enumerate(probes.items()):
+        color = probe_colors[i % len(probe_colors)]
+        tm = calculate_tm(probe_seq)
+        html_file.append(
+            f"<li><b>{probe_name}</b>: "
+            f"<span style='background-color:{color};'>{probe_seq}</span> "
+            f"({len(probe_seq)} bp, Tm = {tm}C)</li>\n")
+    html_file.append("</ul><hr>\n")
 
-        # -------Highlight probe matches in sequences ------------
-        for sample_name, sequences in fragment_sizes.items():
-            for i, seq in enumerate(sequences, start=1):
-                highlighted = highlight_probe_html(seq, probes, probe_colors)
-                if highlighted != seq:  # if any probe was highlighted
-                    html_file.write(f"<p><b>{sample_name} - Fragment {i} ({len(seq)} bp):</b> {highlighted}</p>\n")
-                    matches_found = True
+    # -------Highlight probe matches in sequences ------------
+    for sample_name, sequences in fragment_sizes.items():
+        for i, seq in enumerate(sequences, start=1):
+            highlighted = highlight_probe_html(seq, probes, probe_colors)
+            if highlighted != seq:  # if any probe was highlighted
+                html_file.append(f"<p><b>{sample_name} - Fragment {i} ({len(seq)} bp):</b> {highlighted}</p>\n")
+                matches_found = True
 
-        if not matches_found:
-            html_file.write("<p>No sequences matched any probe.</p>\n")
+    if not matches_found:
+        html_file.append("<p>No sequences matched any probe.</p>\n")
 
-        html_file.write("</body></html>")
+    html_file.append("</body></html>")
 
-print("HTML file and legend for probes in gel 'probe_matches_d.html' created with probe-highlighted sequences.")
+    #html_file_path = f'{os.path.dirname(os.path.realpath(__file__))}/{filename}'
+    
+    # with open(html_file_path, 'r') as f:
+    #     html_content = f.read()
+    # encoded = base64.b64encode(html_content.encode()).decode()
+    return html_file
+
+
+
+#print("HTML file and legend for probes in gel 'probe_matches_d.html' created with probe-highlighted sequences.")
 
 #DNA ladder in gel
 def plot_ladder(ax, ladder, x_pos, color ="red"):
@@ -106,7 +142,7 @@ def plot_sample_lane(ax, fragment_sizes, probes, probe_colors, x_pos, lane_lable
 
 #Saving fragment lengths to a file(.txt)
 def save_fragment_lengths(filename, fragment_sizes): 
-    with open("dna_fragments_lengths_d.txt", "w") as f:
+    with open(filename, "w") as f:
         for sample_name, sequences in fragment_sizes.items():
             f.write(f"Sample: {sample_name}\n")
             for i, seq in enumerate(sequences, start=1):
@@ -130,61 +166,66 @@ def calculate_tm(seq):
 
 ############################################## MAIN SCRIPT ####################################################
 
+
 #Generate HTML with Tm values
-generate_html("probe_matches_e.html", fragment_sizes, probes, probe_colors)
+#generate_html("probe_matches_e.html", fragment_sizes, probes, probe_colors)
 
-# Gel plot setup
-fig, ax = plt.subplots(figsize=(6, 10))
-ax.set_facecolor('black')
-ax.set_ylim(0,130)
-ax.set_xlim(0,2)#adjusted to fir both lanes 
-ax.invert_yaxis()
-ax.set_xticks([])
-ax.set_yticks([])
 
-#Plot ladder 
-ladder_x = 0.5
-plot_ladder(ax, ladder, ladder_x)
+def gel_image(ladder, fragment_sizes, probes, probe_colors):
+    # Gel plot setup
+    fig, ax = plt.subplots(figsize=(6, 10))
+    ax.set_facecolor('black')
+    ax.set_ylim(0,130)
+    ax.set_xlim(0,2)#adjusted to fir both lanes 
+    ax.invert_yaxis()
+    ax.set_xticks([])
+    ax.set_yticks([])
 
-#Plot sample lane 
-lane_x = 1.5
-plot_sample_lane(ax, fragment_sizes, probes, probe_colors, lane_x)
+    #Plot ladder 
+    ladder_x = 0.5
+    plot_ladder(ax, ladder, ladder_x)
 
-#Title of plot 
-title_x = (ladder_x + lane_x) / 2
-ax.text(title_x, 5, "In Silico DNA Gel", color='white', ha='center', fontsize=16, fontweight='bold')
+    #Plot sample lane 
+    lane_x = 1.5
+    plot_sample_lane(ax, fragment_sizes, probes, probe_colors, lane_x)
 
-#Probe color legend to be put on gel image 
-legend_y = 100    # move legend higher
-x_start = 0.25
-x_spacing = 0.3  # more spacing between entries
+    #Title of plot 
+    title_x = (ladder_x + lane_x) / 2
+    ax.text(title_x, 5, "In Silico DNA Gel", color='white', ha='center', fontsize=16, fontweight='bold')
 
-for i, (probe_name, probe_seq) in enumerate(probes.items()):
-    color = probe_colors[i % len(probe_colors)]
-    x_pos = x_start + i * x_spacing
+    #Probe color legend to be put on gel image 
+    legend_y = 100    # move legend higher
+    x_start = 0.25
+    x_spacing = 0.3  # more spacing between entries
 
-     # Draw the color block
-    block_width = 0.20
-    block_height = 3
-    ax.add_patch(plt.Rectangle((x_pos, legend_y), block_width, block_height, color=color, ec='white', lw=0.5))
+    for i, (probe_name, probe_seq) in enumerate(probes.items()):
+        color = probe_colors[i % len(probe_colors)]
+        x_pos = x_start + i * x_spacing
 
-    #calculating Tm for probes 
-    tm = calculate_tm(probe_seq)
+        # Draw the color block
+        block_width = 0.20
+        block_height = 3
+        ax.add_patch(plt.Rectangle((x_pos, legend_y), block_width, block_height, color=color, ec='white', lw=0.5))
 
-    # Add probe label UNDER the block (centered)
-    ax.text(
-        x_pos + block_width / 2, # center text under the block
-        legend_y -2, # vertical offset (a few units below the block)
-        f"{probe_name}\n\n\nTm=\n\n{tm}C",
-        color='white',
-        fontsize=9,
-        ha='center',  # center align horizontally
-        va='bottom', # align text baseline with this y-position
-        linespacing=0.8)
+        #calculating Tm for probes 
+        tm = calculate_tm(probe_seq)
 
-#Saving plot
-plt.savefig("in_silico_test_gel_fixed_e.png", dpi=300, bbox_inches='tight', facecolor=fig.get_facecolor())
-plt.show()
+        # Add probe label UNDER the block (centered)
+        ax.text(
+            x_pos + block_width / 2, # center text under the block
+            legend_y -2, # vertical offset (a few units below the block)
+            f"{probe_name}\n\n\nTm=\n\n{tm}C",
+            color='white',
+            fontsize=9,
+            ha='center',  # center align horizontally
+            va='bottom', # align text baseline with this y-position
+            linespacing=0.8)
+
+    out_url = fig_to_uri(fig)
+    return out_url
+    #Saving plot
+    #return plt.savefig("in_silico_test_gel_fixed_e.png", dpi=300, bbox_inches='tight', facecolor=fig.get_facecolor())
+    
 
 #Save fragment lengths
-save_fragment_lengths("dna_fragments_lengths_d.txt", fragment_sizes)
+#save_fragment_lengths("dna_fragments_lengths_d.txt", fragment_sizes)
