@@ -8,7 +8,7 @@ fragment_sizes = {"Seq1": ["ATGCGT" * 500 , "GATTACA" * 300 , "TTAGGC" * 270 , "
                   "Seq2": ["GCGT" * 300 , "TTGAC" * 312 , "ATGC" * 120 , "CG" * 75]}
 
 ladder = {'100bp': 100, '200bp': 200, '500bp': 500,
-          '1000bp': 1000, '2000bp': 2000, '3000bp': 3000}
+          '1000bp': 1000, '2000bp': 2000, '3000bp': 3000, '5000bp' : 5000}
 
 probes = {"Probe1" : "ATGCGT"*100,
           "Probe2" : "GATTACA"*50 , 
@@ -85,7 +85,7 @@ print("HTML file and legend for probes in gel 'probe_matches_d.html' created wit
 def plot_ladder(ax, ladder, x_pos, color ="red"):
     for name, size in ladder.items():
         y = migration_distance(size)
-        ax.hlines(y, x_pos-0.2, x_pos+0.2, color=color, linewidth=3)
+        ax.hlines(y, x_pos-0.2, x_pos+0.2, color=color, linewidth=2)
         ax.text(x_pos-0.5, y, name, color='white', va='center')
     ax.text(x_pos, +20, "DNA Ladder", color=color, ha='center', fontsize=12, fontweight='bold')
 
@@ -153,6 +153,34 @@ plot_sample_lane(ax, fragment_sizes, probes, probe_colors, lane_x)
 #Title of plot 
 title_x = (ladder_x + lane_x) / 2
 ax.text(title_x, 5, "In Silico DNA Gel", color='white', ha='center', fontsize=16, fontweight='bold')
+
+#Probe color legend to be put on gel image 
+legend_y = 100    # move legend higher
+x_start = 0.25
+x_spacing = 0.3  # more spacing between entries
+
+for i, (probe_name, probe_seq) in enumerate(probes.items()):
+    color = probe_colors[i % len(probe_colors)]
+    x_pos = x_start + i * x_spacing
+
+     # Draw the color block
+    block_width = 0.20
+    block_height = 5
+    ax.add_patch(plt.Rectangle((x_pos, legend_y), block_width, block_height, color=color, ec='white', lw=0.5))
+
+    #calculating Tm for probes 
+    tm = calculate_tm(probe_seq)
+
+    # Add probe label UNDER the block (centered)
+    ax.text(
+        x_pos + block_width / 2, # center text under the block
+        legend_y -2, # vertical offset (a few units below the block)
+        f"{probe_name}\n\n\nTm=\n\n{tm}C",
+        color='white',
+        fontsize=9,
+        ha='center',  # center align horizontally
+        va='bottom', # align text baseline with this y-position
+        linespacing=0.8)
 
 #Saving plot
 plt.savefig("in_silico_test_gel_fixed_e.png", dpi=300, bbox_inches='tight', facecolor=fig.get_facecolor())
