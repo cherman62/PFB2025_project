@@ -184,7 +184,6 @@ def capture_inputs(n_clicks, fasta_values, enzyme_values, probe_values):
             error_msg.append("Error: Enzyme names cannot contain spaces.")
     
     if error_msg:
-        print(error_msg)
         error_list = []
         for msg in error_msg:
             error_list.append(html.Div(
@@ -262,7 +261,6 @@ def update_html(n_clicks, fasta_values, enzyme_values, probe_values):
     #html_raw = base64.b64decode(html_content.split(",")[1]).decode('utf-8')
 
     i = '\n'.join(html_content)
-    print(i)
     return i
     
    

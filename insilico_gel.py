@@ -123,22 +123,29 @@ def plot_ladder(ax, ladder, x_pos, color ="red"):
         y = migration_distance(size)
         ax.hlines(y, x_pos-0.2, x_pos+0.2, color=color, linewidth=2)
         ax.text(x_pos-0.5, y, name, color='white', va='center')
-    ax.text(x_pos, +20, "DNA Ladder", color=color, ha='center', fontsize=12, fontweight='bold')
+    ax.text(x_pos, +10, "DNA Ladder", color=color, ha='center', fontsize=12, fontweight='bold')
 
 #Sample lane in gel 
 def plot_sample_lane(ax, fragment_sizes, probes, probe_colors, x_pos, lane_lable="Test Sample"):
     sample_color = "white"
+    long_frag = migration_distance(len(max((s for val in fragment_sizes.values() for s in val), key=len)))
+    short_frag = migration_distance(len(min((s for val in fragment_sizes.values() for s in val), key=len)))
+    print(short_frag)
+    print(len(min((s for val in fragment_sizes.values() for s in val), key=len)))
+    print(long_frag)
+    print(len(max((s for val in fragment_sizes.values() for s in val), key=len)))
     for sample_name, seq_list in fragment_sizes.items(): 
         for seq in seq_list:
-            y = migration_distance(len(seq))
+            y =120-(105*((migration_distance(len(seq))-short_frag)/(long_frag-short_frag)))
+            print(y)
             band_color = sample_color
             for i, probe_seq in enumerate(probes.values()):
                 if probe_seq in seq:
                     band_color = probe_colors[i % len(probe_colors)]
-                    print(f"Probe '{probe_seq}' detected in {sample_name} fragment ({len(seq)} bp)")
+                    #print(f"Probe '{probe_seq}' detected in {sample_name} fragment ({len(seq)} bp)")
                     break  # stop at first matching probe
             ax.hlines(y, x_pos-0.2, x_pos+0.2, color=band_color, linewidth=2)
-        ax.text(x_pos, +20, "Test Sample", color=sample_color, ha='center', fontsize=12, fontweight='bold')
+        ax.text(x_pos, +10, "Test Sample", color=sample_color, ha='center', fontsize=12, fontweight='bold')
 
 #Saving fragment lengths to a file(.txt)
 def save_fragment_lengths(filename, fragment_sizes): 
@@ -194,7 +201,7 @@ def gel_image(ladder, fragment_sizes, probes, probe_colors):
     ax.text(title_x, 5, "In Silico DNA Gel", color='white', ha='center', fontsize=16, fontweight='bold')
 
     #Probe color legend to be put on gel image 
-    legend_y = 100    # move legend higher
+    legend_y = 125    # move legend higher
     x_start = 0.25
     x_spacing = 0.3  # more spacing between entries
 
