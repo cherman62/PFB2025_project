@@ -118,11 +118,14 @@ def generate_html(fragment_sizes, probes, probe_colors):
 #print("HTML file and legend for probes in gel 'probe_matches_d.html' created with probe-highlighted sequences.")
 
 #DNA ladder in gel
-def plot_ladder(ax, ladder, x_pos, color ="red"):
+def plot_ladder(ax, ladder, x_pos, fragment_sizes, color ="red"):
+    long_frag = migration_distance(len(max((s for val in fragment_sizes.values() for s in val), key=len)))
+    short_frag = migration_distance(len(min((s for val in fragment_sizes.values() for s in val), key=len)))
     for name, size in ladder.items():
-        y = migration_distance(size)
-        ax.hlines(y, x_pos-0.2, x_pos+0.2, color=color, linewidth=2)
-        ax.text(x_pos-0.5, y, name, color='white', va='center')
+        if migration_distance(size) >= long_frag and migration_distance(size) <= short_frag:
+            y = 115-(100*((migration_distance(size)-short_frag)/(long_frag-short_frag)))
+            ax.hlines(y, x_pos-0.2, x_pos+0.2, color=color, linewidth=2)
+            ax.text(x_pos-0.5, y, name, color='white', va='center')
     ax.text(x_pos, +10, "DNA Ladder", color=color, ha='center', fontsize=12, fontweight='bold')
 
 #Sample lane in gel 
@@ -130,13 +133,11 @@ def plot_sample_lane(ax, fragment_sizes, probes, probe_colors, x_pos, lane_lable
     sample_color = "white"
     long_frag = migration_distance(len(max((s for val in fragment_sizes.values() for s in val), key=len)))
     short_frag = migration_distance(len(min((s for val in fragment_sizes.values() for s in val), key=len)))
-    print(short_frag)
     print(len(min((s for val in fragment_sizes.values() for s in val), key=len)))
-    print(long_frag)
     print(len(max((s for val in fragment_sizes.values() for s in val), key=len)))
     for sample_name, seq_list in fragment_sizes.items(): 
         for seq in seq_list:
-            y =120-(105*((migration_distance(len(seq))-short_frag)/(long_frag-short_frag)))
+            y =115-(100*((migration_distance(len(seq))-short_frag)/(long_frag-short_frag)))
             print(y)
             band_color = sample_color
             for i, probe_seq in enumerate(probes.values()):
@@ -190,7 +191,7 @@ def gel_image(ladder, fragment_sizes, probes, probe_colors):
 
     #Plot ladder 
     ladder_x = 0.5
-    plot_ladder(ax, ladder, ladder_x)
+    plot_ladder(ax, ladder, ladder_x, fragment_sizes)
 
     #Plot sample lane 
     lane_x = 1.5
@@ -202,7 +203,7 @@ def gel_image(ladder, fragment_sizes, probes, probe_colors):
 
     #Probe color legend to be put on gel image 
     legend_y = 125    # move legend higher
-    x_start = 0.25
+    x_start = 0.05
     x_spacing = 0.3  # more spacing between entries
 
     for i, (probe_name, probe_seq) in enumerate(probes.items()):
@@ -221,7 +222,7 @@ def gel_image(ladder, fragment_sizes, probes, probe_colors):
         ax.text(
             x_pos + block_width / 2, # center text under the block
             legend_y -2, # vertical offset (a few units below the block)
-            f"{probe_name}\n\n\nTm=\n\n{tm}C",
+            f"{probe_name}\nTm=\n{tm}C",
             color='white',
             fontsize=9,
             ha='center',  # center align horizontally
