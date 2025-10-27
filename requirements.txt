@@ -1,0 +1,46 @@
+biopython @ file:///Users/runner/miniforge3/conda-bld/biopython_1756541787343/work
+blinker==1.9.0
+certifi==2025.10.5
+charset-normalizer==3.4.4
+click==8.3.0
+colorama @ file:///home/conda/feedstock_root/build_artifacts/colorama_1733218098505/work
+contourpy==1.3.3
+cycler==0.12.1
+dash==3.2.0
+exceptiongroup @ file:///home/conda/feedstock_root/build_artifacts/exceptiongroup_1746947292760/work
+Flask==3.1.2
+fonttools==4.60.1
+idna==3.11
+importlib_metadata==8.7.0
+iniconfig @ file:///home/conda/feedstock_root/build_artifacts/iniconfig_1760831328738/work
+itsdangerous==2.2.0
+Jinja2==3.1.6
+kiwisolver==1.4.9
+Levenshtein==0.27.1
+MarkupSafe==3.0.3
+matplotlib==3.10.7
+narwhals==2.9.0
+nest-asyncio==1.6.0
+numpy @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_numpy_1757504954/work/dist/numpy-2.3.3-cp313-cp313-macosx_10_13_x86_64.whl#sha256=42e08795aef907dfd2f5856177a56d85f9531602944e06e81e81b72d59143067
+packaging @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_packaging_1745345660/work
+pandas==2.3.3
+pillow==12.0.0
+plotly==6.3.1
+pluggy @ file:///home/conda/feedstock_root/build_artifacts/pluggy_1747339660894/work
+Pygments @ file:///home/conda/feedstock_root/build_artifacts/pygments_1750615794071/work
+pyparsing==3.2.5
+pytest @ file:///home/conda/feedstock_root/build_artifacts/pytest_1757011799554/work
+python-dateutil==2.9.0.post0
+pytz==2025.2
+RapidFuzz==3.14.1
+requests==2.32.5
+retrying==1.4.2
+setuptools==78.1.1
+six==1.17.0
+tomli @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_tomli_1760014679/work
+typing_extensions @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_typing_extensions_1756220668/work
+tzdata==2025.2
+urllib3==2.5.0
+Werkzeug==3.1.3
+wheel==0.45.1
+zipp==3.23.0
