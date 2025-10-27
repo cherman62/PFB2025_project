@@ -40,11 +40,20 @@ app.layout = html.Div([
     html.Div([                                                          # Fasta input box 
      dcc.Textarea(id='fasta_input', rows=20, cols=90, value='', required=True,
                 placeholder=f'>sequence name\nACGTACGT...\n>sequence2 name\nACGTACGT...\n',)],
-                style={"marginBottom": "20px"}),
+                style={"marginBottom": "5px"}),
+#######################################
+    # html.Div(dcc.Upload(id= 'Upload button', contents='', children = html.Div(html.A('Select file',
+    #              style={"font-size": "20px", "marginBottom": "20px", 'marginLeft': '0px', "color": "#007bff", "textDecoration": "none"}))),
+    #              style={"marginBottom": "20px"}),
+
+
+######################################
 
     html.Div([                                              # Probe Fasta input title  
      html.Label("2) Paste one or more Probe sequences in FASTA format", htmlFor='probe_input',
                 style={"font-size": "20px", "marginRight": "10px"})]),
+    html.Label("Paste up to 6 Probe sequences", htmlFor='probe_input',
+                style={"font-size": "15px", "marginLeft": "22px"}),
     html.Div([                                                          # Probe Fasta input box 
      dcc.Textarea(id='probe_input', rows=10, cols=90, value='', required=True,
                 placeholder=f'>probe name\nACGTACGT...\n>probe2 name\nACGTACGT...\n',)],
@@ -150,6 +159,7 @@ def check_enzyme_suggestions(n_clicks, enzyme_values):
     Output('store_probes_dict', 'data'),#this will be probe_values
     Output('error_output', 'children'),
     Input('submit_button', 'n_clicks'), # triggers when Submit button is clicked
+    #State('Upload button', 'contents'),
     State('fasta_input', 'value'),  # reads FASTA input
     State({'type': 'enzyme', 'index': ALL}, 'value'), # read values of all enzyme boxes
     State('probe_input', 'value')  # reads Probe FASTA input
@@ -158,9 +168,33 @@ def check_enzyme_suggestions(n_clicks, enzyme_values):
 def capture_inputs(n_clicks, fasta_values, enzyme_values, probe_values):
     if n_clicks == 0:
         return no_update, no_update, no_update # Do nothing if not triggered by the button
-    
+    #fasta_values = ''
     error_msg = []
+###########################################
 
+    # if not fasta_values_upload and not fasta_values_text:
+    #     error_msg.append("Error:Invalid FASTA format for DNA sequence. Please ensure your input starts with '>'.")
+    # if fasta_values_upload and fasta_values_text:
+    #     error_msg.append("Error: Please EITHER upload OR paste your FASTA file.")
+    # if fasta_values_upload:
+    #     content_type, content_string = fasta_values_upload.split(',')
+    #     decoded_bytes = base64.b64decode(content_string)
+    #     text = decoded_bytes.decode('utf-8')
+    #     text = text.lstrip('\ufeff')
+    #     fasta_values = text
+    # if fasta_values_text:
+    #     fasta_values = fasta_values_text
+    
+ #########################################   
+    # if fasta_values == '':
+    #     error_list = []
+    #     for msg in error_msg:
+    #         error_list.append(html.Div(
+    #         f"{msg}",
+    #         style={"marginBottom": "8px", 'color': 'red'}
+    #         ))
+    #     return no_update, no_update, error_list
+    # else:
     if not fasta_values or not fasta_values.startswith('>'): #check the FASTA has header
         error_msg.append("Error: Invalid FASTA format for DNA sequence. Please ensure your input starts with '>'.")
     for line in fasta_values.split('\n'): #Check only valid characters in FASTA sequence
@@ -190,8 +224,7 @@ def capture_inputs(n_clicks, fasta_values, enzyme_values, probe_values):
             f"{msg}",
             style={"marginBottom": "8px", 'color': 'red'}
             ))
-            #exit(1)
-        return {}, {}, error_list
+        return no_update, no_update, error_list
     
     if len(re_match(enzyme_values)[0]) == len(enzyme_values):  #check all enzymes valid
         if not error_msg:  # proceed only if no errors so far
@@ -200,7 +233,7 @@ def capture_inputs(n_clicks, fasta_values, enzyme_values, probe_values):
             motifs = re_match(enzyme_values)[0] #enzyme patterns list
             digested_dict = re_digest(fasta_dict, motifs)
     
-    return digested_dict, probes_dict, []
+            return digested_dict, probes_dict, []
 
 ########################################################################################################################
 ########################################################################################################################
