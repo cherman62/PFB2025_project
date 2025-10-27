@@ -3,15 +3,17 @@
 def read_fasta(fasta_sequence):
 
     fasta_file_split = fasta_sequence.split('\n')
-    filtered_list = [real_string for real_string in fasta_file_split if real_string.strip()]
+    #filtered_list = [real_string for real_string in fasta_file_split if real_string.strip()]
 
     seq_ID = []
     seq = []
     growing_str = ''
 
-    for list_element in filtered_list:
+    for list_element in fasta_file_split:
         if list_element.startswith('>'):
             if growing_str:
+                growing_str = growing_str.upper()
+                #print(growing_str)
                 seq.append(growing_str)
                 growing_str = ''
             seq_ID.append(list_element)
@@ -20,6 +22,6 @@ def read_fasta(fasta_sequence):
     seq.append(growing_str)
 
     fasta_dict = dict(zip(seq_ID,seq))
-
+    #print(fasta_dict)
     return fasta_dict
 
