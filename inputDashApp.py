@@ -215,8 +215,8 @@ State('probe_input', 'value')
 )
 def update_gel_image(n_clicks, fasta_values, enzyme_values, probe_values):
     #Graphical parameters
-    ladder = {'100bp': 100, '200bp': 200, '500bp': 500,
-        '1000bp': 1000, '2000bp': 2000, '3000bp': 3000, '5000bp' : 5000}
+    ladder = {'25bp':25 , '50bp':50, '100bp': 100, '200bp': 200, '500bp': 500,
+        '1000bp': 1000, '2000bp': 2000, '3000bp': 3000, '5000bp' : 5000 , '10000bp':10000 , '20000bp':20000 , '30000bp':30000 , '100000bp':100000}
     probe_colors = ["yellow" , "lime" , "magenta" , "cyan" , "orange", "teal" , "blue", "coral" , "darkgreen" , "tan", "sienna", "plum", "lavendar"]
 
     if n_clicks == 0:
