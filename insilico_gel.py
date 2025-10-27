@@ -133,12 +133,12 @@ def plot_sample_lane(ax, fragment_sizes, probes, probe_colors, x_pos, lane_lable
     sample_color = "white"
     long_frag = migration_distance(len(max((s for val in fragment_sizes.values() for s in val), key=len)))
     short_frag = migration_distance(len(min((s for val in fragment_sizes.values() for s in val), key=len)))
-    print(len(min((s for val in fragment_sizes.values() for s in val), key=len)))
-    print(len(max((s for val in fragment_sizes.values() for s in val), key=len)))
+    # print(len(min((s for val in fragment_sizes.values() for s in val), key=len)))
+    # print(len(max((s for val in fragment_sizes.values() for s in val), key=len)))
     for sample_name, seq_list in fragment_sizes.items(): 
         for seq in seq_list:
             y =115-(100*((migration_distance(len(seq))-short_frag)/(long_frag-short_frag)))
-            print(y)
+            # print(y)
             band_color = sample_color
             for i, probe_seq in enumerate(probes.values()):
                 if probe_seq in seq:

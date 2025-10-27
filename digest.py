@@ -67,7 +67,6 @@ def re_digest(fasta_dict, motifs):
             ### Split the sequence into fragments at the cut site
             fragments = seq.split("^")
             fragments_dict[seq_id] = fragments 
-
         return fragments_dict
 
     ### Function to reverse complement values of dictionary if they are a string
