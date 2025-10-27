@@ -42,8 +42,10 @@ app.layout = html.Div([
                 placeholder=f'>sequence name\nACGTACGT...\n>sequence2 name\nACGTACGT...\n',)],
                 style={"marginBottom": "5px"}),
 #######################################
-    html.Div(dcc.Upload(id= 'Upload button', contents='', children = html.Div(html.A('Select file',
-                 style={"font-size": "20px", "marginBottom": "20px", 'marginLeft': '0px', "color": "#007bff", "textDecoration": "none"}))),
+    html.Div(dcc.Upload(id= 'Upload button', contents='', children = html.Div([html.Label("Or", htmlFor='probe_input',
+                style={"font-size": "20px", "marginRight": "10px"}),
+                html.A('Select FASTA file',
+                 style={"font-size": "20px", "marginBottom": "20px", 'marginLeft': '0px', "color": "#007bff", "textDecoration": "none"})])),
                  style={"marginBottom": "20px"}),
 
 
