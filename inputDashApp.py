@@ -230,11 +230,11 @@ def capture_inputs(n_clicks, fasta_values_upload, fasta_values_text, enzyme_valu
         if len(re_match(enzyme_values)[0]) == len(enzyme_values):  #check all enzymes valid
             if not error_msg:  # proceed only if no errors so far
                 fasta_dict = read_fasta(fasta_values) #fasta dictionary
-                print(fasta_dict)
+                #(fasta_dict)
                 probes_dict = read_fasta(probe_values)
                 motifs = re_match(enzyme_values)[0] #enzyme patterns list
                 digested_dict = re_digest(fasta_dict, motifs)
-                print(digested_dict)
+                #print(digested_dict)
 
                 return digested_dict, probes_dict, []
 
@@ -287,16 +287,27 @@ def update_gel_image(n_clicks, fasta_values_text, fasta_values_upload, enzyme_va
 Output("html-frame", 'srcDoc'),
 Input('store_digested_dict', 'data'),
 State('fasta_input', 'value'),
+State('Upload button', 'contents'),
 State({'type': 'enzyme', 'index': ALL}, 'value'),
 State('probe_input', 'value')
 )
-def update_html(n_clicks, fasta_values, enzyme_values, probe_values):
+def update_html(n_clicks, fasta_values_text, fasta_values_upload, enzyme_values, probe_values):
 
     probe_colors = ["yellow" , "lime" , "magenta" , "cyan" , "orange", "teal" , "blue", "coral" , "darkgreen" , "tan", "sienna", "plum", "lavendar"]
 
     if n_clicks == 0:
         return no_update
     
+    if fasta_values_upload:
+            content_type, content_string = fasta_values_upload.split(',')
+            decoded_bytes = base64.b64decode(content_string)
+            text = decoded_bytes.decode('utf-8')
+            text = text.lstrip('\ufeff')
+            fasta_values = text
+            #print(f"x{fasta_values[:100]}")
+    if fasta_values_text:
+        fasta_values = fasta_values_text
+
     # Process inputs as before
     fasta_dict = read_fasta(fasta_values)
     probes_dict = read_fasta(probe_values)
